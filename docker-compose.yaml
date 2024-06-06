@@ -1,10 +1,10 @@
 services:
   cache:
-    image: nearaurora/caching-proxies-cache:latest
-    container_name: caching-proxies-cache-public-testnet
-    pull_policy: always
+    image: caching-proxies-cache:latest
+    container_name: caching-proxies-cache-testnet
+    pull_policy: never
     command:
-      - "./app"
+      - "./app/app"
       - "-shard-prefix=shards"
       - "-shards-to-listen=1,2,3,4"
       - "-creds=config/caching.creds"
@@ -12,36 +12,20 @@ services:
     volumes:
       - ./config:/app/config
     restart: unless-stopped
-    labels: [ "com.centurylinklabs.watchtower.scope=rpc-speedup-testnet" ]
     ports:
       - "1324:1324"
 
   terminal:
-    image: nearaurora/caching-proxies-terminal:latest
-    container_name: caching-proxies-terminal-public-testnet
-    pull_policy: always
+    image: caching-proxies-terminal:latest
+    container_name: caching-proxies-terminal-testnet
+    pull_policy: never
     command:
-      - "./app"
+      - "./app/app"
       - "-server=nats://rpc-speedup-nats.testnet.aurora.dev"
       - "-submissions-verifier-host=https://rpc-speedup-verifier.testnet.aurora.dev/authenticate"
       - "-shard-prefix=shards"
     volumes:
       - ./config:/app/config
     restart: unless-stopped
-    labels: [ "com.centurylinklabs.watchtower.scope=rpc-speedup-testnet" ]
     ports:
       - "1323:1323"
-
-  watchtower:
-    image: containrrr/watchtower
-    container_name: caching-proxies-watchtower
-    restart: unless-stopped
-    labels: [ "com.centurylinklabs.watchtower.scope=rpc-speedup-testnet" ]
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 5m
-        max-file: "5"
-    command: --interval 30 --scope rpc-speedup-testnet caching-proxies-cache-public-testnet caching-proxies-terminal-public-testnet
